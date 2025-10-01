@@ -1,47 +1,49 @@
-# **************************************************************************** #
-#                                                                              #
-#                                                         :::      ::::::::    #
-#    Makefile                                           :+:      :+:    :+:    #
-#                                                     +:+ +:+         +:+      #
-#    By: tbezerra <tbezerra@student.42porto.com>    +#+  +:+       +#+         #
-#                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2024/06/26 16:01:55 by tbezerra          #+#    #+#              #
-#    Updated: 2024/08/06 10:39:31 by tbezerra         ###   ########.fr        #
-#                                                                              #
-# **************************************************************************** #
-
-NAME = so_long
-HEADER = ./
-MAKE = make -C
+NAME = cub3d
 CC = cc
-LIBFT = ./includes/libft/libft.a
-MINILIBX = ./includes/mlx/libmlx_Linux.a
-CFLAGS = -Wall -Werror -Wextra
-MLXFLAGS = -L ./includes/mlx -lm -lmlx -Ilmlx -lXext -lX11
-
-SRCS = main.c moves.c moves_utis.c free.c begin.c utis_map.c game_config.c\
-	maps_check.c maps_check_2.c render_game.c
-
-OBJS = ${SRCS:.c=.o}
+FLAGS = -Wall -Wextra -Werror
+RM = rm -fr
+MAIN = cub3d.c
+FILES = Utils/loading.c Utils/loading2.c Utils/rendering.c Utils/rendering2.c Utils/rendering3.c Utils/moving.c \
+		Utils/validating.c Utils/flood_fill_cub3d.c Utils/destroying.c Utils/error_handling.c Utils/moving_screen.c \
+		cub3d.c
+OBJ_SRC = loading.o loading2.o rendering.o rendering2.o rendering3.o moving.o \
+		validating.o flood_fill_cub3d.o destroying.o error_handling.o moving_screen.o cub3d.o
+OBJ = obj/loading.o obj/loading2.o obj/rendering.o obj/rendering2.o obj/rendering3.o obj/moving.o \
+		obj/validating.o obj/flood_fill_cub3d.o obj/destroying.o obj/error_handling.o obj/moving_screen.o obj/cub3d.o
+LIBFT = ./libft
+MINILIBX = ./include/mlx/minilibx-linux
+MLXFLAGS = -lmlx -lXext -lX11
+WBLOCK = --no-print-directory
 
 all: $(NAME)
 
-$(LIBFT):
-	$(MAKE) ./includes/libft
+#mlx:
+#	git clone https://github.com/42Paris/minilibx-linux.git ./include/mlx
+#	make -C ./include/mlx
 
-$(MLX):
-	$(MAKE) ./includes/mlx
+$(NAME): $(OBJ)
+	@$(CC) $(FLAGS) $(OBJ) -L $(LIBFT) -lft -L $(MINILIBX) $(MLXFLAGS) -lm -o $(NAME)
 
-$(NAME): $(OBJS) $(LIBFT) $(MLX)
-	$(CC) $(CFLAGS) $(OBJS) $(LIBFT) $(MLXFLAGS) -o $(NAME)
-
-%.o: %.c
-	$(CC) $(CFLAGS) -I$(HEADER) -c $(SRCS)
+$(OBJ): $(MAIN) $(FILES)
+	@mkdir -p include/mlx
+	@tar -xzf minilibx-linux.tgz -C include/mlx
+	@make -C $(MINILIBX) -s
+	@make $(WBLOCK) -C $(LIBFT) all
+	@mkdir -p obj
+	@$(CC) $(FLAGS) -c $(FILES)
+	@mv $(OBJ_SRC) obj/
 
 clean:
-	$(RM) $(OBJS)
+	@$(RM) $(OBJ) obj
+	@make $(WBLOCK) clean -C $(LIBFT)
+	@make clean -C $(MINILIBX) -s
 
-fclean: clean
-	$(RM) $(NAME)
+fclean:
+	@$(RM) $(OBJ) $(NAME) obj
+	@make $(WBLOCK) fclean -C $(LIBFT)
+	@make clean -C $(MINILIBX) -s
+	@$(RM) include/mlx
 
-re: fclean $(NAME)
+re: fclean all
+
+.PHONY: all clean fclean re
